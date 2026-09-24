@@ -1,0 +1,85 @@
+[
+  {
+    "message": "我的快递怎么还没到？",
+    "expected": "delivery_delay"
+  },
+  {
+    "message": "我的耳机啥时候能送到？",
+    "expected": "delivery_delay"
+  },
+  {
+    "message": "订单一直没消息，都好几天了",
+    "expected": "delivery_delay"
+  },
+  {
+    "message": "页面显示已经发货，但是我一直没有收到",
+    "expected": "delivery_delay"
+  },
+  {
+    "message": "我真服了，你们发货以后怎么一直没动静？",
+    "expected": "delivery_delay"
+  },
+
+  {
+    "message": "这个商品我不想要了，可以退款吗？",
+    "expected": "refund_request"
+  },
+  {
+    "message": "帮我把钱退回来",
+    "expected": "refund_request"
+  },
+  {
+    "message": "买错型号了，我想取消订单",
+    "expected": "refund_request"
+  },
+  {
+    "message": "商品还没有发货，我不要了",
+    "expected": "refund_request"
+  },
+  {
+    "message": "质量太差了，我要求退款",
+    "expected": "refund_request"
+  },
+
+  {
+    "message": "耳机坏了，能换一个新的吗？",
+    "expected": "return_exchange"
+  },
+  {
+    "message": "收到的商品型号不对，我要换货",
+    "expected": "return_exchange"
+  },
+  {
+    "message": "衣服尺寸不合适，可以换大一码吗？",
+    "expected": "return_exchange"
+  },
+  {
+    "message": "商品有划痕，我想退货",
+    "expected": "return_exchange"
+  },
+  {
+    "message": "键盘有一个按键失灵，怎么退换？",
+    "expected": "return_exchange"
+  },
+
+  {
+    "message": "你们客服几点下班？",
+    "expected": "unknown"
+  },
+  {
+    "message": "这个耳机有什么颜色？",
+    "expected": "unknown"
+  },
+  {
+    "message": "今天有什么优惠活动？",
+    "expected": "unknown"
+  },
+  {
+    "message": "可以开发票吗？",
+    "expected": "unknown"
+  },
+  {
+    "message": "你们公司在哪里？",
+    "expected": "unknown"
+  }
+]
