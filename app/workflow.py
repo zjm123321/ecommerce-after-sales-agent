@@ -2,6 +2,7 @@ from typing import TypedDict
 
 from langgraph.graph import END, START, StateGraph
 
+from app.classifier import classify_message
 from app.data import get_order
 
 
@@ -15,10 +16,16 @@ class TicketState(TypedDict, total=False):
     error: str
 
 
+#  关键词判断
+#  def classify_issue(state: TicketState) -> dict:
+#     """Classify only delivery-related questions in the first prototype."""
+#     delivery_words = ("物流", "快递", "没到", "延迟", "晚了", "送到")
+#     issue_type = "delivery_delay" if any(word in state["message"] for word in delivery_words) else "unknown"
+#     return {"issue_type": issue_type}
+
 def classify_issue(state: TicketState) -> dict:
-    """Classify only delivery-related questions in the first prototype."""
-    delivery_words = ("物流", "快递", "没到", "延迟", "晚了", "送到")
-    issue_type = "delivery_delay" if any(word in state["message"] for word in delivery_words) else "unknown"
+    """使用 DeepSeek 识别售后问题类型。"""
+    issue_type = classify_message(state["message"])
     return {"issue_type": issue_type}
 
 
