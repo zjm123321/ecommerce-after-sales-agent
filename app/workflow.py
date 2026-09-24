@@ -13,7 +13,8 @@ class TicketState(TypedDict, total=False):
     order: dict
     action: str
     response: str
-    error: str
+    error_code: str
+    error_message: str
 
 
 #  关键词判断
@@ -25,30 +26,52 @@ class TicketState(TypedDict, total=False):
 
 def classify_issue(state: TicketState) -> dict:
     """使用 DeepSeek 识别售后问题类型。"""
-    issue_type = classify_message(state["message"])
-    return {"issue_type": issue_type}
+    try:
+        issue_type = classify_message(state["message"])
+        return {"issue_type": issue_type}
+    except Exception as exc:
+        return {
+            "issue_type": "unknown",
+            "error_code": "classification_failed",
+            "error_message": str(exc),
+        }
 
 
 def load_order(state: TicketState) -> dict:
     """Load the order from the in-memory mock data."""
+    if state.get("error_code"):
+        return {}
+
     order = get_order(state["order_id"])
     if order is None:
-        return {"error": "订单不存在"}
+        return {
+            "error_code": "order_not_found",
+            "error_message": "订单不存在",
+        }
+
     return {"order": order}
 
 
 def generate_resolution(state: TicketState) -> dict:
-    """Return an expedite action only for a valid delivery question."""
-    if state.get("error"):
+    """根据工作流状态生成售后处理结果。"""
+    if state.get("error_code") == "classification_failed":
+        return {
+            "action": "manual_service",
+            "response": "问题识别服务暂时不可用，请联系人工客服。",
+        }
+
+    if state.get("error_code") == "order_not_found":
         return {
             "action": "manual_service",
             "response": "没有找到该订单，请联系人工客服。",
         }
+
     if state["issue_type"] != "delivery_delay":
         return {
             "action": "manual_service",
-            "response": "暂时无法识别该问题，请联系人工客服。",
+            "response": "暂时无法处理该问题，请联系人工客服。",
         }
+
     product = state["order"]["product"]
     return {
         "action": "expedite_logistics",

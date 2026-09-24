@@ -26,7 +26,9 @@ def classify_message(message: str) -> IssueType:
     client = OpenAI(
         api_key=DEEPSEEK_API_KEY,
         base_url="https://api.deepseek.com",
-    )
+        timeout=10.0,
+        max_retries=2,
+    )   
 
     response = client.chat.completions.create(
         model="deepseek-chat",
