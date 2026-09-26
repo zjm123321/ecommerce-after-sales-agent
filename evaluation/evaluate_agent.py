@@ -7,6 +7,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 from app.agent import run_agent
+from app.disclosure_agent import run_disclosure_agent
 
 
 DEFAULT_CASES_PATH = Path(__file__).with_name("agent_cases.json")
@@ -125,7 +126,13 @@ def check_final_response(
 def evaluate_case(case: dict, prompt_version: str) -> dict:
     started_at = time.perf_counter()
     try:
-        result = run_agent(case["message"], prompt_version=prompt_version)
+        if prompt_version == "disclosure":
+            result = run_disclosure_agent(case["message"])
+        else:
+            result = run_agent(
+                case["message"],
+                prompt_version=prompt_version,
+            )
         elapsed = time.perf_counter() - started_at
         messages = result["messages"]
         actual_calls = collect_tool_calls(messages)
@@ -339,7 +346,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--prompt",
-        choices=["baseline", "optimized"],
+        choices=["baseline", "optimized", "disclosure"],
         default="optimized",
     )
     parser.add_argument("--workers", type=int, default=1)

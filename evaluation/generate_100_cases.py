@@ -155,6 +155,7 @@ def generate_cases() -> list[dict]:
                             "未查询到",
                             "查询不到",
                             "没有找到",
+                            "未找到",
                         ]
                     ],
                     forbidden_terms=false_ticket_claims + external_claims,
