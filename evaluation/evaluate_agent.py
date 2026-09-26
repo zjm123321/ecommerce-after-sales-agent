@@ -1,5 +1,5 @@
 import json
-import sys
+import argparse
 import time
 from collections import Counter
 from pathlib import Path
@@ -104,7 +104,10 @@ def check_final_response(
     return response_correct, missing_terms, matched_forbidden_terms
 
 
-def evaluate(cases_path: Path) -> None:
+def evaluate(
+    cases_path: Path,
+    prompt_version: str,
+) -> None:
     cases = load_cases(cases_path)
 
     passed_cases = 0
@@ -117,12 +120,16 @@ def evaluate(cases_path: Path) -> None:
     total_latency = 0.0
 
     print(f"评测数据集：{cases_path}")
+    print(f"提示词版本：{prompt_version}")
 
     for case in cases:
         started_at = time.perf_counter()
 
         try:
-            result = run_agent(case["message"])
+            result = run_agent(
+                case["message"],
+                prompt_version=prompt_version,
+            )
             elapsed = time.perf_counter() - started_at
 
             messages = result["messages"]
@@ -236,9 +243,21 @@ def evaluate(cases_path: Path) -> None:
 
 
 if __name__ == "__main__":
-    cases_path = (
-        Path(sys.argv[1])
-        if len(sys.argv) > 1
-        else DEFAULT_CASES_PATH
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "cases_path",
+        nargs="?",
+        type=Path,
+        default=DEFAULT_CASES_PATH,
     )
-    evaluate(cases_path)
+    parser.add_argument(
+        "--prompt",
+        choices=["baseline", "optimized"],
+        default="optimized",
+    )
+    args = parser.parse_args()
+
+    evaluate(
+        cases_path=args.cases_path,
+        prompt_version=args.prompt,
+    )
