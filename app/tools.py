@@ -2,6 +2,7 @@ from langchain_core.tools import tool
 
 from app.data import get_order
 from app.logistics import get_logistics
+from app.ticket_service import create_ticket
 
 
 @tool
@@ -38,4 +39,25 @@ def get_logistics_tool(order_id: str) -> dict:
         "found": True,
         "order_id": order_id,
         **logistics,
+    }
+
+@tool
+def create_ticket_tool(
+    order_id: str,
+    issue_type: str,
+    action: str,
+) -> dict:
+    """创建售后工单。只有确认订单和物流状态后，才能调用此工具。"""
+    ticket = create_ticket(
+        order_id=order_id,
+        issue_type=issue_type,
+        action=action,
+    )
+
+    return {
+        "ticket_id": ticket.ticket_id,
+        "order_id": ticket.order_id,
+        "issue_type": ticket.issue_type,
+        "action": ticket.action,
+        "status": ticket.status,
     }
