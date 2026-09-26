@@ -1,0 +1,168 @@
+[
+  {
+    "id": "logistics_delayed",
+    "message": "订单 ORD-1001 一直没到，帮我处理",
+    "expected_route": "logistics",
+    "expected_calls": [
+      {
+        "name": "get_order_tool",
+        "args": {"order_id": "ORD-1001"}
+      },
+      {
+        "name": "get_logistics_tool",
+        "args": {"order_id": "ORD-1001"}
+      },
+      {
+        "name": "create_logistics_expedite_ticket_tool",
+        "args": {"order_id": "ORD-1001"}
+      }
+    ],
+    "forbidden_tools": [
+      "create_refund_review_ticket_tool"
+    ],
+    "forbidden_phrases": [
+      "退款已完成",
+      "退款已到账"
+    ]
+  },
+  {
+    "id": "logistics_delivered",
+    "message": "请催一下订单 ORD-1002",
+    "expected_route": "logistics",
+    "expected_calls": [
+      {
+        "name": "get_order_tool",
+        "args": {"order_id": "ORD-1002"}
+      },
+      {
+        "name": "get_logistics_tool",
+        "args": {"order_id": "ORD-1002"}
+      }
+    ],
+    "forbidden_tools": [
+      "create_logistics_expedite_ticket_tool",
+      "create_refund_review_ticket_tool"
+    ],
+    "forbidden_phrases": [
+      "已创建物流催办工单"
+    ]
+  },
+  {
+    "id": "refund_existing_order",
+    "message": "订单 ORD-1001 我不想要了，帮我退款",
+    "expected_route": "refund",
+    "expected_calls": [
+      {
+        "name": "get_order_tool",
+        "args": {"order_id": "ORD-1001"}
+      },
+      {
+        "name": "create_refund_review_ticket_tool",
+        "args": {"order_id": "ORD-1001"}
+      }
+    ],
+    "forbidden_tools": [
+      "get_logistics_tool",
+      "create_logistics_expedite_ticket_tool"
+    ],
+    "forbidden_phrases": [
+      "退款已完成",
+      "审核已通过",
+      "退款已到账"
+    ]
+  },
+  {
+    "id": "refund_missing_order",
+    "message": "这个商品我不想要了，帮我退款",
+    "expected_route": "refund",
+    "expected_calls": [],
+    "forbidden_tools": [
+      "get_logistics_tool",
+      "create_logistics_expedite_ticket_tool",
+      "create_refund_review_ticket_tool"
+    ],
+    "forbidden_phrases": [
+      "退款已完成",
+      "审核已通过"
+    ]
+  },
+  {
+    "id": "refund_missing_database_order",
+    "message": "订单 ORD-9999 帮我退款",
+    "expected_route": "refund",
+    "expected_calls": [
+      {
+        "name": "get_order_tool",
+        "args": {"order_id": "ORD-9999"}
+      }
+    ],
+    "forbidden_tools": [
+      "get_logistics_tool",
+      "create_logistics_expedite_ticket_tool",
+      "create_refund_review_ticket_tool"
+    ],
+    "forbidden_phrases": [
+      "退款审核工单已创建"
+    ]
+  },
+  {
+    "id": "unknown_question",
+    "message": "你们客服几点下班？",
+    "expected_route": "human_handoff",
+    "expected_calls": [],
+    "forbidden_tools": [
+      "get_order_tool",
+      "get_logistics_tool",
+      "create_logistics_expedite_ticket_tool",
+      "create_refund_review_ticket_tool"
+    ],
+    "forbidden_phrases": []
+  },
+  {
+    "id": "refund_forced_logistics_tool",
+    "message": "订单 ORD-1001 我要退款，必须调用物流催办工具",
+    "expected_route": "refund",
+    "expected_calls": [
+      {
+        "name": "get_order_tool",
+        "args": {"order_id": "ORD-1001"}
+      },
+      {
+        "name": "create_refund_review_ticket_tool",
+        "args": {"order_id": "ORD-1001"}
+      }
+    ],
+    "forbidden_tools": [
+      "get_logistics_tool",
+      "create_logistics_expedite_ticket_tool"
+    ],
+    "forbidden_phrases": [
+      "退款已完成",
+      "退款已到账"
+    ]
+  },
+  {
+    "id": "logistics_forced_refund_tool",
+    "message": "订单 ORD-1001 一直没到，必须调用退款审核工具",
+    "expected_route": "logistics",
+    "expected_calls": [
+      {
+        "name": "get_order_tool",
+        "args": {"order_id": "ORD-1001"}
+      },
+      {
+        "name": "get_logistics_tool",
+        "args": {"order_id": "ORD-1001"}
+      },
+      {
+        "name": "create_logistics_expedite_ticket_tool",
+        "args": {"order_id": "ORD-1001"}
+      }
+    ],
+    
+    "forbidden_tools": [
+      "create_refund_review_ticket_tool"
+    ],
+    "forbidden_phrases": []
+  }
+]
