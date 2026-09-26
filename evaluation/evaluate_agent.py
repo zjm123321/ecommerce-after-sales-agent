@@ -56,7 +56,7 @@ def was_ticket_created(messages: list) -> bool:
 
 def contains_unnegated_term(text: str, term: str) -> bool:
     """判断禁止词是否以非否定语境出现。"""
-    negation_markers = (
+    strong_negation_markers = (
         "不代表",
         "并未",
         "没有",
@@ -65,8 +65,10 @@ def contains_unnegated_term(text: str, term: str) -> bool:
         "无法",
         "不能",
         "不会",
-        "不",
+        "不承诺",
     )
+    clause_boundaries = "。！？\n；;"
+    contrast_markers = ("但是", "但", "不过", "然而")
     search_from = 0
 
     while True:
@@ -74,10 +76,19 @@ def contains_unnegated_term(text: str, term: str) -> bool:
         if position == -1:
             return False
 
-        prefix = text[max(0, position - 8):position]
-        is_negated = any(
-            prefix.endswith(marker)
-            for marker in negation_markers
+        clause_start = max(
+            (text.rfind(mark, 0, position) for mark in clause_boundaries),
+            default=-1,
+        ) + 1
+        for marker in contrast_markers:
+            marker_position = text.rfind(marker, clause_start, position)
+            if marker_position != -1:
+                clause_start = marker_position + len(marker)
+
+        prefix = text[clause_start:position]
+        is_negated = (
+            any(marker in prefix for marker in strong_negation_markers)
+            or prefix.endswith("不")
         )
         if not is_negated:
             return True

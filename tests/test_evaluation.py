@@ -10,6 +10,16 @@ from evaluation.evaluate_agent import contains_unnegated_term
         ("不代表已联系顺丰。", "已联系顺丰", False),
         ("我们保证送达。", "保证送达", True),
         ("目前无法保证送达时间。", "保证送达", False),
+        (
+            "不代表已完成实际催办或保证送达时间。",
+            "保证送达",
+            False,
+        ),
+        (
+            "当前不能退款，但是我们保证送达。",
+            "保证送达",
+            True,
+        ),
     ],
 )
 def test_contains_unnegated_term(text, term, expected):
