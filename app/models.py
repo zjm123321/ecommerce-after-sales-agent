@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import DateTime, String, func
+from sqlalchemy import DateTime, Index, String, func, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
@@ -10,6 +10,15 @@ class Ticket(Base):
     """售后工单数据库模型。"""
 
     __tablename__ = "tickets"
+    __table_args__ = (
+        Index(
+            "uq_tickets_pending_order_action",
+            "order_id",
+            "action",
+            unique=True,
+            postgresql_where=text("status = 'pending'"),
+        ),
+    )
 
     ticket_id: Mapped[str] = mapped_column(
         String(32),
