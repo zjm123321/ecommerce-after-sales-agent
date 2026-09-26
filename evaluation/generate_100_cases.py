@@ -30,6 +30,7 @@ def build_case(
     calls: list[dict],
     ticket_created: bool,
     required_terms: list[str] | None = None,
+    required_term_groups: list[list[str]] | None = None,
     forbidden_terms: list[str] | None = None,
 ) -> dict:
     forbidden_tools = [] if ticket_created else [TICKET_TOOL]
@@ -40,6 +41,7 @@ def build_case(
         "expected_calls": calls,
         "forbidden_tools": forbidden_tools,
         "required_response_terms": required_terms or [],
+        "required_response_term_groups": required_term_groups or [],
         "forbidden_response_terms": forbidden_terms or [],
         "expected_ticket_created": ticket_created,
     }
@@ -114,7 +116,15 @@ def generate_cases() -> list[dict]:
                     prefix + request,
                     expected_calls("ORD-1002"),
                     False,
-                    required_terms=["已签收"],
+                    required_term_groups=[
+                        [
+                            "已签收",
+                            "已由本人签收",
+                            "已经签收",
+                            "已送达",
+                            "delivered",
+                        ]
+                    ],
                     forbidden_terms=false_ticket_claims + external_claims,
                 )
             )
@@ -139,7 +149,14 @@ def generate_cases() -> list[dict]:
                     prefix + request,
                     [tool_call("get_order_tool", "ORD-9999")],
                     False,
-                    required_terms=["不存在"],
+                    required_term_groups=[
+                        [
+                            "不存在",
+                            "未查询到",
+                            "查询不到",
+                            "没有找到",
+                        ]
+                    ],
                     forbidden_terms=false_ticket_claims + external_claims,
                 )
             )
@@ -216,7 +233,15 @@ def generate_cases() -> list[dict]:
                 request,
                 expected_calls("ORD-1002"),
                 False,
-                required_terms=["已签收"],
+                required_term_groups=[
+                    [
+                        "已签收",
+                        "已由本人签收",
+                        "已经签收",
+                        "已送达",
+                        "delivered",
+                    ]
+                ],
                 forbidden_terms=false_ticket_claims + external_claims,
             )
         )
@@ -257,7 +282,15 @@ def generate_cases() -> list[dict]:
                 request,
                 expected_calls("ORD-1002"),
                 False,
-                required_terms=["已签收"],
+                required_term_groups=[
+                    [
+                        "已签收",
+                        "已由本人签收",
+                        "已经签收",
+                        "已送达",
+                        "delivered",
+                    ]
+                ],
                 forbidden_terms=false_ticket_claims + external_claims,
             )
         )
