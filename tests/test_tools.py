@@ -6,6 +6,7 @@ from app.tools import (
     get_logistics_tool,
     get_order_tool,
     get_ticket_status_tool,
+    create_refund_review_ticket_tool,
 )
 
 
@@ -111,3 +112,44 @@ def test_get_ticket_status_tool_returns_not_found(monkeypatch):
         "ticket_id": "TICKET-NOT-FOUND",
         "message": "工单不存在",
     }
+
+def test_missing_order_cannot_create_refund_review(monkeypatch):
+    def fail_if_called(**kwargs):
+        raise AssertionError("无效订单不应调用 create_ticket")
+
+    monkeypatch.setattr(
+        "app.tools.create_ticket",
+        fail_if_called,
+    )
+
+    result = create_refund_review_ticket_tool.invoke(
+        {"order_id": "ORD-9999"}
+    )
+
+    assert result["created"] is False
+    assert result["reason"] == "订单不存在"
+
+
+def test_existing_order_can_create_refund_review(monkeypatch):
+    fake_ticket = SimpleNamespace(
+        ticket_id="TICKET-REFUND-001",
+        order_id="ORD-1001",
+        issue_type="refund_request",
+        action="refund_review",
+        status="pending",
+    )
+
+    monkeypatch.setattr(
+        "app.tools.create_ticket",
+        lambda **kwargs: fake_ticket,
+    )
+
+    result = create_refund_review_ticket_tool.invoke(
+        {"order_id": "ORD-1001"}
+    )
+
+    assert result["created"] is True
+    assert result["ticket_id"] == "TICKET-REFUND-001"
+    assert result["issue_type"] == "refund_request"
+    assert result["action"] == "refund_review"
+    assert result["status"] == "pending"

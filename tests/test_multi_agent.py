@@ -6,6 +6,15 @@ from langchain_core.messages import AIMessage
 from app.multi_agent import build_multi_agent
 
 
+def fake_refund_agent(state) -> dict:
+    """代替真实退款 Agent，避免单元测试调用 API。"""
+    return {
+        "messages": [
+            AIMessage(content="退款 Agent 已处理")
+        ]
+    }
+
+
 def fake_logistics_agent(state) -> dict:
     """代替真实物流 Agent，避免单元测试调用 API。"""
     return {
@@ -26,7 +35,7 @@ def fake_logistics_agent(state) -> dict:
         (
             "refund_request",
             "refund",
-            "退款 Agent 尚未接入",
+            "退款 Agent 已处理",
         ),
         (
             "return_exchange",
@@ -56,6 +65,7 @@ def test_multi_agent_routes_to_expected_specialist(
 
     agent = build_multi_agent(
         logistics_agent=fake_logistics_agent,
+        refund_agent=fake_refund_agent,
     )
 
     result = agent.invoke(

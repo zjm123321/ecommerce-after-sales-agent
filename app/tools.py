@@ -106,3 +106,31 @@ def get_ticket_status_tool(ticket_id: str) -> dict:
         "status": ticket.status,
         "created_at": ticket.created_at.isoformat(),
     }
+
+@tool
+def create_refund_review_ticket_tool(order_id: str) -> dict:
+    """为有效订单创建内部退款审核工单，不直接执行退款。"""
+    order = get_order(order_id)
+
+    if order is None:
+        return {
+            "created": False,
+            "order_id": order_id,
+            "reason": "订单不存在",
+        }
+
+    ticket = create_ticket(
+        order_id=order_id,
+        issue_type="refund_request",
+        action="refund_review",
+    )
+
+    return {
+        "created": True,
+        "ticket_id": ticket.ticket_id,
+        "order_id": ticket.order_id,
+        "issue_type": ticket.issue_type,
+        "action": ticket.action,
+        "status": ticket.status,
+        "message": "内部退款审核工单已创建或已存在",
+    }
