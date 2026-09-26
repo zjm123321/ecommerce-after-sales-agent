@@ -1,9 +1,11 @@
+from datetime import datetime, timezone
 from types import SimpleNamespace
 
 from app.tools import (
     create_logistics_expedite_ticket_tool,
     get_logistics_tool,
     get_order_tool,
+    get_ticket_status_tool,
 )
 
 
@@ -27,7 +29,10 @@ def test_delivered_order_cannot_create_expedite_ticket(monkeypatch):
     def fail_if_called(**kwargs):
         raise AssertionError("已签收订单不应调用 create_ticket")
 
-    monkeypatch.setattr("app.tools.create_ticket", fail_if_called)
+    monkeypatch.setattr(
+        "app.tools.create_ticket",
+        fail_if_called,
+    )
 
     result = create_logistics_expedite_ticket_tool.invoke(
         {"order_id": "ORD-1002"}
@@ -58,3 +63,51 @@ def test_delayed_order_can_create_expedite_ticket(monkeypatch):
     assert result["created"] is True
     assert result["ticket_id"] == "TICKET-TEST-001"
     assert result["action"] == "expedite_logistics"
+
+
+def test_get_ticket_status_tool_returns_ticket(monkeypatch):
+    fake_ticket = SimpleNamespace(
+        ticket_id="TICKET-TEST-001",
+        order_id="ORD-1001",
+        issue_type="delivery_delay",
+        action="expedite_logistics",
+        status="pending",
+        created_at=datetime(
+            2026,
+            9,
+            27,
+            tzinfo=timezone.utc,
+        ),
+    )
+
+    monkeypatch.setattr(
+        "app.tools.get_ticket",
+        lambda ticket_id: fake_ticket,
+    )
+
+    result = get_ticket_status_tool.invoke(
+        {"ticket_id": "TICKET-TEST-001"}
+    )
+
+    assert result["found"] is True
+    assert result["ticket_id"] == "TICKET-TEST-001"
+    assert result["order_id"] == "ORD-1001"
+    assert result["status"] == "pending"
+    assert result["created_at"] == "2026-09-27T00:00:00+00:00"
+
+
+def test_get_ticket_status_tool_returns_not_found(monkeypatch):
+    monkeypatch.setattr(
+        "app.tools.get_ticket",
+        lambda ticket_id: None,
+    )
+
+    result = get_ticket_status_tool.invoke(
+        {"ticket_id": "TICKET-NOT-FOUND"}
+    )
+
+    assert result == {
+        "found": False,
+        "ticket_id": "TICKET-NOT-FOUND",
+        "message": "工单不存在",
+    }

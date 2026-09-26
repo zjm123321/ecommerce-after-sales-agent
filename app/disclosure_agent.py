@@ -10,10 +10,16 @@ from app.tools import (
     create_logistics_expedite_ticket_tool,
     get_logistics_tool,
     get_order_tool,
+    get_ticket_status_tool,
 )
 
 
-ORDER_MODEL = MODEL.bind_tools([get_order_tool])
+ORDER_MODEL = MODEL.bind_tools(
+    [
+        get_order_tool,
+        get_ticket_status_tool,
+    ]
+)
 LOGISTICS_MODEL = MODEL.bind_tools([get_logistics_tool])
 TICKET_MODEL = MODEL.bind_tools(
     [create_logistics_expedite_ticket_tool]
@@ -35,6 +41,10 @@ ORDER_STAGE_PROMPT = """
    并使用消息中已有的订单号调用 get_order_tool。
 8. 不得向用户介绍“当前阶段”或“当前可用工具”，
    只执行验证或返回业务结果。
+9. 如果用户询问刚才工单、已有工单或处理进度，并且历史消息中存在工单号，
+   必须调用 get_ticket_status_tool 查询最新状态。
+10. 不得根据历史状态声称工单当前仍处于某个状态，当前状态必须以
+    get_ticket_status_tool 的返回结果为准。
 """
 
 
@@ -104,9 +114,13 @@ def generate_final_response(state: MessagesState) -> dict:
 
 
 def route_after_order(state: MessagesState) -> str:
+    last_message = state["messages"][-1]
+
+    if last_message.name == "get_ticket_status_tool":
+        return "respond"
+
     result = parse_last_tool_result(state)
     return "logistics_agent" if result.get("found") else "respond"
-
 
 def route_after_logistics(state: MessagesState) -> str:
     result = parse_last_tool_result(state)
@@ -115,11 +129,19 @@ def route_after_logistics(state: MessagesState) -> str:
     return "respond"
 
 
-def build_disclosure_agent():
+def build_disclosure_agent(checkpointer=None):
     graph = StateGraph(MessagesState)
 
     graph.add_node("order_agent", call_order_agent)
-    graph.add_node("order_tools", ToolNode([get_order_tool]))
+    graph.add_node(
+        "order_tools",
+        ToolNode(
+            [
+                get_order_tool,
+                get_ticket_status_tool,
+            ]
+        ),
+)
     graph.add_node("logistics_agent", call_logistics_agent)
     graph.add_node(
         "logistics_tools",
@@ -176,7 +198,7 @@ def build_disclosure_agent():
     graph.add_edge("ticket_tools", "respond")
     graph.add_edge("respond", END)
 
-    return graph.compile()
+    return graph.compile(checkpointer=checkpointer)
 
 
 DISCLOSURE_AGENT = build_disclosure_agent()

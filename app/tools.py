@@ -2,7 +2,7 @@ from langchain_core.tools import tool
 
 from app.data import get_order
 from app.logistics import get_logistics
-from app.ticket_service import create_ticket
+from app.ticket_service import create_ticket, get_ticket
 
 
 @tool
@@ -83,4 +83,26 @@ def create_logistics_expedite_ticket_tool(order_id: str) -> dict:
         "action": ticket.action,
         "status": ticket.status,
         "message": "内部物流催办工单已创建或已存在",
+    }
+
+@tool
+def get_ticket_status_tool(ticket_id: str) -> dict:
+    """根据工单编号查询内部售后工单的最新状态。"""
+    ticket = get_ticket(ticket_id)
+
+    if ticket is None:
+        return {
+            "found": False,
+            "ticket_id": ticket_id,
+            "message": "工单不存在",
+        }
+
+    return {
+        "found": True,
+        "ticket_id": ticket.ticket_id,
+        "order_id": ticket.order_id,
+        "issue_type": ticket.issue_type,
+        "action": ticket.action,
+        "status": ticket.status,
+        "created_at": ticket.created_at.isoformat(),
     }
