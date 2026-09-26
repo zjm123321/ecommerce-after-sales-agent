@@ -1,17 +1,17 @@
 import json
 import time
+import sys
 from pathlib import Path
 
 from app.agent import run_agent
 
-
-CASES_PATH = Path(__file__).with_name("agent_cases.json")
+DEFAULT_CASES_PATH = Path(__file__).with_name("agent_cases.json")
 TICKET_TOOL = "create_logistics_expedite_ticket_tool"
 
 
-def load_cases() -> list[dict]:
-    """读取 Agent 评测数据。"""
-    with CASES_PATH.open(encoding="utf-8") as file:
+def load_cases(cases_path: Path) -> list[dict]:
+    """读取指定的 Agent 评测数据。"""
+    with cases_path.open(encoding="utf-8") as file:
         return json.load(file)
 
 
@@ -45,8 +45,9 @@ def was_ticket_created(messages: list) -> bool:
     return False
 
 
-def evaluate() -> None:
-    cases = load_cases()
+def evaluate(cases_path: Path) -> None:
+    cases = load_cases(cases_path)
+    print(f"评测数据集：{cases_path}")
     passed_cases = 0
     correct_tool_cases = 0
     violation_attempts = 0
@@ -124,4 +125,9 @@ def evaluate() -> None:
 
 
 if __name__ == "__main__":
-    evaluate()
+    cases_path = (
+        Path(sys.argv[1])
+        if len(sys.argv) > 1
+        else DEFAULT_CASES_PATH
+    )
+    evaluate(cases_path)
