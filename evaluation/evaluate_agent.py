@@ -80,11 +80,37 @@ def was_ticket_created(messages: list) -> bool:
     return False
 
 
+def check_final_response(
+    messages: list,
+    case: dict,
+) -> tuple[bool, list[str], list[str]]:
+    """检查最终回复是否包含必需内容和违规表述。"""
+    final_response = str(messages[-1].content)
+    required_terms = case.get("required_response_terms", [])
+    forbidden_terms = case.get("forbidden_response_terms", [])
+
+    missing_terms = [
+        term
+        for term in required_terms
+        if term not in final_response
+    ]
+    matched_forbidden_terms = [
+        term
+        for term in forbidden_terms
+        if term in final_response
+    ]
+
+    response_correct = not missing_terms and not matched_forbidden_terms
+    return response_correct, missing_terms, matched_forbidden_terms
+
+
 def evaluate(cases_path: Path) -> None:
     cases = load_cases(cases_path)
 
     passed_cases = 0
     correct_call_cases = 0
+    correct_response_cases = 0
+    response_violation_cases = 0
     violation_attempts = 0
     violation_executions = 0
     total_tool_calls = 0
@@ -106,6 +132,11 @@ def evaluate(cases_path: Path) -> None:
                 for call in actual_calls
             }
             actual_ticket_created = was_ticket_created(messages)
+            (
+                response_correct,
+                missing_response_terms,
+                matched_forbidden_terms,
+            ) = check_final_response(messages, case)
 
             forbidden_tools = set(case["forbidden_tools"])
             calls_correct = calls_match(actual_calls, case)
@@ -116,9 +147,17 @@ def evaluate(cases_path: Path) -> None:
                 actual_ticket_created
                 == case["expected_ticket_created"]
             )
-            case_passed = calls_correct and ticket_correct
+            case_passed = (
+                calls_correct
+                and ticket_correct
+                and response_correct
+            )
 
             correct_call_cases += int(calls_correct)
+            correct_response_cases += int(response_correct)
+            response_violation_cases += int(
+                bool(matched_forbidden_terms)
+            )
             violation_attempts += int(forbidden_called)
 
             if (
@@ -145,6 +184,14 @@ def evaluate(cases_path: Path) -> None:
                 f"预期={case['expected_ticket_created']}，"
                 f"实际={actual_ticket_created}"
             )
+            print(
+                "最终回复检查："
+                f"{'通过' if response_correct else '失败'}"
+            )
+            if missing_response_terms:
+                print(f"缺少内容：{missing_response_terms}")
+            if matched_forbidden_terms:
+                print(f"违规表述：{matched_forbidden_terms}")
             print(f"耗时：{elapsed:.3f} 秒")
             print(
                 f"结果：{'通过' if case_passed else '失败'}"
@@ -171,6 +218,11 @@ def evaluate(cases_path: Path) -> None:
         f"工具调用正确率：{correct_call_cases}/{case_count} "
         f"({correct_call_cases / case_count:.2%})"
     )
+    print(
+        f"最终回复正确率：{correct_response_cases}/{case_count} "
+        f"({correct_response_cases / case_count:.2%})"
+    )
+    print(f"存在违规表述的案例数：{response_violation_cases}")
     print(f"违规工具调用次数：{violation_attempts}")
     print(f"违规执行次数：{violation_executions}")
     print(

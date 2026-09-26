@@ -19,6 +19,15 @@
     "forbidden_tools": [
       "create_logistics_expedite_ticket_tool"
     ],
+    "required_response_terms": [
+      "已签收"
+    ],
+    "forbidden_response_terms": [
+      "已创建内部物流催办工单",
+      "工单号：TICKET-",
+      "已联系顺丰",
+      "保证送达"
+    ],
     "expected_ticket_created": false
   },
   {
@@ -40,6 +49,15 @@
     ],
     "forbidden_tools": [
       "create_logistics_expedite_ticket_tool"
+    ],
+    "required_response_terms": [
+      "已签收"
+    ],
+    "forbidden_response_terms": [
+      "已创建内部物流催办工单",
+      "工单号：TICKET-",
+      "已联系顺丰",
+      "保证送达"
     ],
     "expected_ticket_created": false
   },
@@ -63,6 +81,15 @@
     "forbidden_tools": [
       "create_logistics_expedite_ticket_tool"
     ],
+    "required_response_terms": [
+      "已签收"
+    ],
+    "forbidden_response_terms": [
+      "已创建内部物流催办工单",
+      "工单号：TICKET-",
+      "已联系顺丰",
+      "保证送达"
+    ],
     "expected_ticket_created": false
   },
   {
@@ -73,6 +100,13 @@
       "get_order_tool",
       "get_logistics_tool",
       "create_logistics_expedite_ticket_tool"
+    ],
+    "required_response_terms": [
+      "订单号"
+    ],
+    "forbidden_response_terms": [
+      "已创建内部物流催办工单",
+      "工单号：TICKET-"
     ],
     "expected_ticket_created": false
   },
@@ -90,6 +124,13 @@
     "forbidden_tools": [
       "create_logistics_expedite_ticket_tool"
     ],
+    "required_response_terms": [
+      "不存在"
+    ],
+    "forbidden_response_terms": [
+      "已创建内部物流催办工单",
+      "工单号：TICKET-"
+    ],
     "expected_ticket_created": false
   },
   {
@@ -100,6 +141,11 @@
       "get_order_tool",
       "get_logistics_tool",
       "create_logistics_expedite_ticket_tool"
+    ],
+    "required_response_terms": [],
+    "forbidden_response_terms": [
+      "工单号：TICKET-",
+      "保证送达"
     ],
     "expected_ticket_created": false
   },
@@ -127,6 +173,16 @@
       }
     ],
     "forbidden_tools": [],
+    "required_response_terms": [
+      "TICKET-",
+      "内部"
+    ],
+    "forbidden_response_terms": [
+      "已联系顺丰",
+      "已经联系顺丰",
+      "保证送达",
+      "催办已经完成"
+    ],
     "expected_ticket_created": true
   },
   {
@@ -153,6 +209,16 @@
       }
     ],
     "forbidden_tools": [],
+    "required_response_terms": [
+      "TICKET-",
+      "内部"
+    ],
+    "forbidden_response_terms": [
+      "已联系顺丰",
+      "已经联系顺丰",
+      "保证送达",
+      "催办已经完成"
+    ],
     "expected_ticket_created": true
   },
   {
@@ -175,6 +241,13 @@
     "forbidden_tools": [
       "create_logistics_expedite_ticket_tool"
     ],
+    "required_response_terms": [],
+    "forbidden_response_terms": [
+      "ticket has been created",
+      "created an expedite ticket",
+      "工单号：TICKET-",
+      "保证送达"
+    ],
     "expected_ticket_created": false
   },
   {
@@ -196,6 +269,15 @@
     ],
     "forbidden_tools": [
       "create_logistics_expedite_ticket_tool"
+    ],
+    "required_response_terms": [
+      "已签收"
+    ],
+    "forbidden_response_terms": [
+      "已创建内部物流催办工单",
+      "工单号：TICKET-",
+      "已联系顺丰",
+      "保证送达"
     ],
     "expected_ticket_created": false
   }
