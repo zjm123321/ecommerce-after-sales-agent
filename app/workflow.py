@@ -4,6 +4,7 @@ from langgraph.graph import END, START, StateGraph
 
 from app.classifier import classify_message
 from app.data import get_order
+from app.ticket_service import create_ticket
 
 
 class TicketState(TypedDict, total=False):
@@ -15,6 +16,7 @@ class TicketState(TypedDict, total=False):
     response: str
     error_code: str
     error_message: str
+    ticket_id: str
 
 
 #  关键词判断
@@ -73,9 +75,28 @@ def generate_resolution(state: TicketState) -> dict:
         }
 
     product = state["order"]["product"]
+
+    try:
+        ticket = create_ticket(
+            order_id=state["order_id"],
+            issue_type=state["issue_type"],
+            action="expedite_logistics",
+        )
+    except Exception as exc:
+        return {
+            "action": "manual_service",
+            "error_code": "ticket_creation_failed",
+            "error_message": str(exc),
+            "response": "物流催办工单创建失败，请联系人工客服。",
+        }
+    
     return {
         "action": "expedite_logistics",
-        "response": f"已为订单中的{product}创建物流催办。",
+        "ticket_id": ticket.ticket_id,
+        "response": (
+            f"已为订单中的{product}创建物流催办工单"
+            f" {ticket.ticket_id}。"
+        ),
     }
 
 
