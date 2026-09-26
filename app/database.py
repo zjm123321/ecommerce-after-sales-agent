@@ -1,3 +1,4 @@
+from psycopg.conninfo import make_conninfo
 from sqlalchemy import URL, create_engine, text
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
@@ -11,6 +12,14 @@ DATABASE_URL = URL.create(
     host="127.0.0.1",
     port=SETTINGS.postgres_port,
     database=SETTINGS.postgres_db,
+)
+
+CHECKPOINT_DATABASE_URL = make_conninfo(
+    host="127.0.0.1",
+    port=SETTINGS.postgres_port,
+    dbname=SETTINGS.postgres_db,
+    user=SETTINGS.postgres_user,
+    password=SETTINGS.postgres_password,
 )
 
 ENGINE = create_engine(

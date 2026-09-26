@@ -7,3 +7,4 @@ psycopg[binary]>=3,<4
 alembic>=1,<2
 pydantic-settings>=2,<3
 langchain-openai>=1,<2
+langgraph-checkpoint-postgres>=3,<4
