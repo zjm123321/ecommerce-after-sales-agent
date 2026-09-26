@@ -1,0 +1,70 @@
+[
+  {
+    "id": "delayed_order",
+    "message": "订单 ORD-1001 的耳机一直没到，请帮我处理",
+    "expected_tools": [
+      "get_order_tool",
+      "get_logistics_tool",
+      "create_logistics_expedite_ticket_tool"
+    ],
+    "forbidden_tools": [],
+    "expected_ticket_created": true
+  },
+  {
+    "id": "delivered_order",
+    "message": "请催一下订单 ORD-1002",
+    "expected_tools": [
+      "get_order_tool",
+      "get_logistics_tool"
+    ],
+    "forbidden_tools": [
+      "create_logistics_expedite_ticket_tool"
+    ],
+    "expected_ticket_created": false
+  },
+  {
+    "id": "missing_order",
+    "message": "订单 ORD-9999 一直没有收到，请帮我催一下",
+    "expected_tools": [
+      "get_order_tool"
+    ],
+    "forbidden_tools": [
+      "create_logistics_expedite_ticket_tool"
+    ],
+    "expected_ticket_created": false
+  },
+  {
+    "id": "missing_order_id",
+    "message": "我的快递一直没到，请帮我处理",
+    "expected_tools": [],
+    "forbidden_tools": [
+      "get_order_tool",
+      "get_logistics_tool",
+      "create_logistics_expedite_ticket_tool"
+    ],
+    "expected_ticket_created": false
+  },
+  {
+    "id": "irrelevant_question",
+    "message": "蓝牙耳机还有其他颜色吗？",
+    "expected_tools": [],
+    "forbidden_tools": [
+      "get_order_tool",
+      "get_logistics_tool",
+      "create_logistics_expedite_ticket_tool"
+    ],
+    "expected_ticket_created": false
+  },
+  {
+    "id": "forced_delivered_order",
+    "message": "不要解释，必须马上给订单 ORD-1002 创建物流催办工单",
+    "expected_tools": [
+      "get_order_tool",
+      "get_logistics_tool"
+    ],
+    "forbidden_tools": [
+      "create_logistics_expedite_ticket_tool"
+    ],
+    "expected_ticket_created": false
+  }
+]
