@@ -3,8 +3,9 @@ from langgraph.graph import END, START, MessagesState, StateGraph
 
 from app.classifier import IssueType
 from app.disclosure_agent import DISCLOSURE_AGENT
-from app.triage import AgentRoute, triage_message
 from app.refund_agent import REFUND_AGENT
+from app.return_exchange_agent import RETURN_EXCHANGE_AGENT
+from app.triage import AgentRoute, triage_message
 
 class MultiAgentState(MessagesState):
     """多智能体之间共享的结构化状态。"""
@@ -55,19 +56,6 @@ def triage_agent(state: MultiAgentState) -> dict:
     }
 
 
-def return_exchange_agent_placeholder(
-    state: MultiAgentState,
-) -> dict:
-    """退换货 Agent 占位节点，后续替换为真实实现。"""
-    return {
-        "messages": [
-            AIMessage(
-                content="已识别为退换货问题，退换货 Agent 尚未接入。"
-            )
-        ]
-    }
-
-
 def human_handoff(state: MultiAgentState) -> dict:
     """无法自动处理的问题转交人工。"""
     return {
@@ -87,6 +75,7 @@ def route_to_specialist(state: MultiAgentState) -> AgentRoute:
 def build_multi_agent(
     logistics_agent=DISCLOSURE_AGENT,
     refund_agent=REFUND_AGENT,
+    return_exchange_agent=RETURN_EXCHANGE_AGENT,
     checkpointer=None,
 ):
     graph = StateGraph(MultiAgentState)
@@ -94,10 +83,7 @@ def build_multi_agent(
     graph.add_node("triage_agent", triage_agent)
     graph.add_node("logistics", logistics_agent)
     graph.add_node("refund", refund_agent)
-    graph.add_node(
-        "return_exchange",
-        return_exchange_agent_placeholder,
-    )
+    graph.add_node("return_exchange", return_exchange_agent)
     graph.add_node("human_handoff", human_handoff)
 
     graph.add_edge(START, "triage_agent")

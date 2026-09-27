@@ -8,6 +8,8 @@ from app.tools import (
     get_ticket_status_tool,
     create_refund_review_ticket_tool,
     search_refund_policy_tool,
+    create_return_exchange_review_ticket_tool,
+    search_return_exchange_policy_tool,
 )
 
 
@@ -231,3 +233,104 @@ def test_refund_policy_tool_rejects_missing_order(
 
     assert result["found"] is False
     assert result["reason"] == "订单不存在"
+
+def test_search_return_exchange_policy_uses_real_order_status(
+    monkeypatch,
+):
+    captured = {}
+
+    def fake_search(
+        query,
+        category,
+        order_status,
+        limit,
+    ):
+        captured.update(
+            {
+                "query": query,
+                "category": category,
+                "order_status": order_status,
+                "limit": limit,
+            }
+        )
+        return [
+            {
+                "policy_id": "POLICY-RETURN-001",
+                "title": "商品质量问题退换货",
+            }
+        ]
+
+    monkeypatch.setattr(
+        "app.tools.search_policy_documents",
+        fake_search,
+    )
+
+    result = search_return_exchange_policy_tool.invoke(
+        {
+            "order_id": "ORD-1002",
+            "query": "键盘按键坏了，想换货",
+        }
+    )
+
+    assert result["found"] is True
+    assert result["order_status"] == "delivered"
+    assert captured == {
+        "query": "键盘按键坏了，想换货",
+        "category": "return_exchange",
+        "order_status": "delivered",
+        "limit": 2,
+    }
+
+
+def test_unshipped_order_cannot_create_return_ticket(
+    monkeypatch,
+):
+    def fail_if_called(**kwargs):
+        raise AssertionError(
+            "未签收订单不应创建退换货审核工单"
+        )
+
+    monkeypatch.setattr(
+        "app.tools.create_ticket",
+        fail_if_called,
+    )
+
+    result = (
+        create_return_exchange_review_ticket_tool.invoke(
+            {"order_id": "ORD-1001"}
+        )
+    )
+
+    assert result == {
+        "created": False,
+        "order_id": "ORD-1001",
+        "reason": "订单尚未签收，不能创建退换货审核工单",
+    }
+
+
+def test_delivered_order_can_create_return_ticket(
+    monkeypatch,
+):
+    fake_ticket = SimpleNamespace(
+        ticket_id="TICKET-RETURN-001",
+        order_id="ORD-1002",
+        issue_type="return_exchange",
+        action="return_exchange_review",
+        status="pending",
+    )
+
+    monkeypatch.setattr(
+        "app.tools.create_ticket",
+        lambda **kwargs: fake_ticket,
+    )
+
+    result = (
+        create_return_exchange_review_ticket_tool.invoke(
+            {"order_id": "ORD-1002"}
+        )
+    )
+
+    assert result["created"] is True
+    assert result["ticket_id"] == "TICKET-RETURN-001"
+    assert result["issue_type"] == "return_exchange"
+    assert result["action"] == "return_exchange_review"

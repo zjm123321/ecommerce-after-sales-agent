@@ -27,6 +27,15 @@ def fake_logistics_agent(state) -> dict:
     }
 
 
+def fake_return_exchange_agent(state) -> dict:
+    """代替真实退换货 Agent，避免单元测试调用 API。"""
+    return {
+        "messages": [
+            AIMessage(content="退换货 Agent 已处理")
+        ]
+    }
+
+
 @pytest.mark.parametrize(
     ("issue_type", "route", "expected_text"),
     [
@@ -43,7 +52,7 @@ def fake_logistics_agent(state) -> dict:
         (
             "return_exchange",
             "return_exchange",
-            "退换货 Agent 尚未接入",
+            "退换货 Agent 已处理",
         ),
         (
             "unknown",
@@ -69,6 +78,7 @@ def test_multi_agent_routes_to_expected_specialist(
     agent = build_multi_agent(
         logistics_agent=fake_logistics_agent,
         refund_agent=fake_refund_agent,
+        return_exchange_agent=fake_return_exchange_agent,
     )
 
     result = agent.invoke(
@@ -85,6 +95,7 @@ def test_multi_agent_routes_to_expected_specialist(
     assert result["issue_type"] == issue_type
     assert result["route"] == route
     assert expected_text in result["messages"][-1].content
+
 
 def test_triage_agent_uses_conversation_context(monkeypatch):
     captured = {}

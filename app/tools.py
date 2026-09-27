@@ -172,3 +172,78 @@ def search_refund_policy_tool(
         "order_status": order["status"],
         "policies": policies,
     }
+
+@tool
+def search_return_exchange_policy_tool(
+    order_id: str,
+    query: str,
+) -> dict:
+    """根据真实订单状态检索适用的退换货政策。"""
+    order = get_order(order_id)
+
+    if order is None:
+        return {
+            "found": False,
+            "order_id": order_id,
+            "reason": "订单不存在",
+        }
+
+    policies = search_policy_documents(
+        query=query,
+        category="return_exchange",
+        order_status=order["status"],
+        limit=2,
+    )
+
+    if not policies:
+        return {
+            "found": False,
+            "order_id": order_id,
+            "order_status": order["status"],
+            "reason": "没有找到适用的退换货政策",
+        }
+
+    return {
+        "found": True,
+        "order_id": order_id,
+        "order_status": order["status"],
+        "policies": policies,
+    }
+
+
+@tool
+def create_return_exchange_review_ticket_tool(
+    order_id: str,
+) -> dict:
+    """为已签收订单创建或复用内部退换货审核工单。"""
+    order = get_order(order_id)
+
+    if order is None:
+        return {
+            "created": False,
+            "order_id": order_id,
+            "reason": "订单不存在",
+        }
+
+    if order["status"] != "delivered":
+        return {
+            "created": False,
+            "order_id": order_id,
+            "reason": "订单尚未签收，不能创建退换货审核工单",
+        }
+
+    ticket = create_ticket(
+        order_id=order_id,
+        issue_type="return_exchange",
+        action="return_exchange_review",
+    )
+
+    return {
+        "created": True,
+        "ticket_id": ticket.ticket_id,
+        "order_id": ticket.order_id,
+        "issue_type": ticket.issue_type,
+        "action": ticket.action,
+        "status": ticket.status,
+        "message": "内部退换货审核工单已创建或已存在",
+    }
