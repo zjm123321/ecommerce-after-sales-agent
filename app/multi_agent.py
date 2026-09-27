@@ -23,9 +23,31 @@ def get_latest_user_message(state: MultiAgentState) -> str:
 
 
 def triage_agent(state: MultiAgentState) -> dict:
-    """识别问题类型并选择专家 Agent。"""
-    message = get_latest_user_message(state)
-    decision = triage_message(message)
+    """结合近期用户消息识别问题类型并选择专家 Agent。"""
+    user_messages = [
+        str(message.content)
+        for message in state["messages"]
+        if isinstance(message, HumanMessage)
+    ]
+
+    if not user_messages:
+        raise ValueError("没有找到用户消息")
+
+    latest_message = user_messages[-1]
+
+    if len(user_messages) == 1:
+        triage_input = latest_message
+    else:
+        previous_messages = "\n".join(
+            user_messages[-3:-1]
+        )
+        triage_input = (
+            "请结合对话历史判断当前问题的业务类型。\n"
+            f"历史用户消息：\n{previous_messages}\n"
+            f"当前用户消息：\n{latest_message}"
+        )
+
+    decision = triage_message(triage_input)
 
     return {
         "issue_type": decision.issue_type,
@@ -65,6 +87,7 @@ def route_to_specialist(state: MultiAgentState) -> AgentRoute:
 def build_multi_agent(
     logistics_agent=DISCLOSURE_AGENT,
     refund_agent=REFUND_AGENT,
+    checkpointer=None,
 ):
     graph = StateGraph(MultiAgentState)
 
@@ -95,7 +118,7 @@ def build_multi_agent(
     graph.add_edge("return_exchange", END)
     graph.add_edge("human_handoff", END)
 
-    return graph.compile()
+    return graph.compile(checkpointer=checkpointer)
 
 
 MULTI_AGENT = build_multi_agent()

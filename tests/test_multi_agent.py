@@ -1,9 +1,12 @@
 from types import SimpleNamespace
 
 import pytest
-from langchain_core.messages import AIMessage
+from langchain_core.messages import AIMessage, HumanMessage
 
-from app.multi_agent import build_multi_agent
+from app.multi_agent import (
+    build_multi_agent,
+    triage_agent,
+)
 
 
 def fake_refund_agent(state) -> dict:
@@ -82,3 +85,38 @@ def test_multi_agent_routes_to_expected_specialist(
     assert result["issue_type"] == issue_type
     assert result["route"] == route
     assert expected_text in result["messages"][-1].content
+
+def test_triage_agent_uses_conversation_context(monkeypatch):
+    captured = {}
+
+    def fake_triage(message):
+        captured["message"] = message
+        return SimpleNamespace(
+            issue_type="delivery_delay",
+            route="logistics",
+        )
+
+    monkeypatch.setattr(
+        "app.multi_agent.triage_message",
+        fake_triage,
+    )
+
+    result = triage_agent(
+        {
+            "messages": [
+                HumanMessage(
+                    content="订单 ORD-1001 物流一直没到"
+                ),
+                AIMessage(
+                    content="已创建内部物流催办工单"
+                ),
+                HumanMessage(
+                    content="刚才那个工单现在怎么样了？"
+                ),
+            ]
+        }
+    )
+
+    assert result["route"] == "logistics"
+    assert "订单 ORD-1001 物流一直没到" in captured["message"]
+    assert "刚才那个工单现在怎么样了" in captured["message"]
