@@ -5,6 +5,8 @@ from mcp.server import MCPServer
 from mcp.types import ToolAnnotations
 
 from app.tools import (
+    create_return_exchange_review_ticket_tool,
+    search_return_exchange_policy_tool,
     create_logistics_expedite_ticket_tool,
     create_refund_review_ticket_tool,
     get_logistics_tool,
@@ -57,6 +59,18 @@ def get_ticket_status(ticket_id: str) -> dict[str, Any]:
         {"ticket_id": ticket_id}
     )
 
+@mcp.tool(annotations=READ_ONLY_TOOL)
+def search_return_exchange_policy(
+    order_id: str,
+    query: str,
+) -> dict[str, Any]:
+    """根据真实订单状态检索适用的退换货政策。"""
+    return search_return_exchange_policy_tool.invoke(
+        {
+            "order_id": order_id,
+            "query": query,
+        }
+    )
 
 @mcp.tool(annotations=READ_ONLY_TOOL)
 def search_refund_policy(
@@ -69,6 +83,15 @@ def search_refund_policy(
             "order_id": order_id,
             "query": query,
         }
+    )
+
+@mcp.tool(annotations=IDEMPOTENT_WRITE_TOOL)
+def create_return_exchange_review_ticket(
+    order_id: str,
+) -> dict[str, Any]:
+    """为符合条件的订单创建或复用内部退换货审核工单。"""
+    return create_return_exchange_review_ticket_tool.invoke(
+        {"order_id": order_id}
     )
 
 @mcp.tool(annotations=IDEMPOTENT_WRITE_TOOL)

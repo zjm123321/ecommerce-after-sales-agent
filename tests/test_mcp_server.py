@@ -20,6 +20,8 @@ def test_mcp_lists_expected_read_only_tools():
         "search_refund_policy",
         "create_logistics_expedite_ticket",
         "create_refund_review_ticket",
+        "search_return_exchange_policy",
+        "create_return_exchange_review_ticket",
     }
 
 
@@ -139,4 +141,42 @@ def test_mcp_rejects_refund_for_missing_order():
         "created": False,
         "order_id": "ORD-9999",
         "reason": "订单不存在",
+    }
+
+def test_mcp_return_policy_rejects_missing_order():
+    async def run_test():
+        async with Client(mcp) as client:
+            return await client.call_tool(
+                "search_return_exchange_policy",
+                {
+                    "order_id": "ORD-9999",
+                    "query": "商品坏了，想换货",
+                },
+            )
+
+    result = asyncio.run(run_test())
+
+    assert result.is_error is False
+    assert result.structured_content == {
+        "found": False,
+        "order_id": "ORD-9999",
+        "reason": "订单不存在",
+    }
+
+
+def test_mcp_rejects_return_for_unshipped_order():
+    async def run_test():
+        async with Client(mcp) as client:
+            return await client.call_tool(
+                "create_return_exchange_review_ticket",
+                {"order_id": "ORD-1001"},
+            )
+
+    result = asyncio.run(run_test())
+
+    assert result.is_error is False
+    assert result.structured_content == {
+        "created": False,
+        "order_id": "ORD-1001",
+        "reason": "订单尚未签收，不能创建退换货审核工单",
     }
