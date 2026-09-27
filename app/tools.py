@@ -3,6 +3,7 @@ from langchain_core.tools import tool
 from app.data import get_order
 from app.logistics import get_logistics
 from app.ticket_service import create_ticket, get_ticket
+from app.policy_service import search_policy_documents
 
 
 @tool
@@ -133,4 +134,41 @@ def create_refund_review_ticket_tool(order_id: str) -> dict:
         "action": ticket.action,
         "status": ticket.status,
         "message": "内部退款审核工单已创建或已存在",
+    }
+
+@tool
+def search_refund_policy_tool(
+    order_id: str,
+    query: str,
+) -> dict:
+    """根据真实订单状态检索适用的退款政策。"""
+    order = get_order(order_id)
+
+    if order is None:
+        return {
+            "found": False,
+            "order_id": order_id,
+            "reason": "订单不存在",
+        }
+
+    policies = search_policy_documents(
+        query=query,
+        category="refund",
+        order_status=order["status"],
+        limit=2,
+    )
+
+    if not policies:
+        return {
+            "found": False,
+            "order_id": order_id,
+            "order_status": order["status"],
+            "reason": "没有找到适用的退款政策",
+        }
+
+    return {
+        "found": True,
+        "order_id": order_id,
+        "order_status": order["status"],
+        "policies": policies,
     }

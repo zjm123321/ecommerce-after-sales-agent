@@ -1,0 +1,50 @@
+[
+  {
+    "policy_id": "POLICY-REFUND-001",
+    "category": "refund",
+    "applicable_order_status":"pending",
+    "title": "未发货订单退款申请",
+    "content": "模拟商城内部政策：订单尚未发货、还没发货、未寄出、没有寄出或仍在等待发货时，用户可以提交取消订单和退款申请。系统只创建内部退款审核工单，最终结果以工作人员审核为准，不代表退款立即完成。",
+    "source": "mock://after-sales-policy/v1/refund/unshipped"
+  },
+  {
+    "policy_id": "POLICY-REFUND-002",
+    "category": "refund",
+    "applicable_order_status":"shipped",
+    "title": "已发货订单退款申请",
+    "content": "模拟商城内部政策：订单已经发货时，不直接承诺退款完成。用户可以提交退款审核申请，工作人员将结合物流状态、商品状态和后续退回情况进行审核。",
+    "source": "mock://after-sales-policy/v1/refund/shipped"
+  },
+  {
+    "policy_id": "POLICY-REFUND-003",
+    "category": "refund",
+    "applicable_order_status":"delivered",
+    "title": "已签收订单退款申请",
+    "content": "模拟商城内部政策：订单已经签收时，退款申请需要说明原因。系统创建内部审核工单，是否需要退回商品以及是否通过审核，以工作人员后续处理结果为准。",
+    "source": "mock://after-sales-policy/v1/refund/delivered"
+  },
+  {
+    "policy_id": "POLICY-RETURN-001",
+    "category": "return_exchange",
+    "applicable_order_status":"delivered",
+    "title": "商品质量问题退换货",
+    "content": "模拟商城内部政策：商品损坏、坏了、按键失灵、没有声音、无法使用、功能异常或存在其他明显质量问题时，用户可以提交退换货审核申请，并应提供问题描述。审核结果以工作人员核实为准。",
+    "source": "mock://after-sales-policy/v1/return/quality"
+  },
+  {
+    "policy_id": "POLICY-RETURN-002",
+    "category": "return_exchange",
+    "applicable_order_status":"delivered",
+    "title": "型号或尺寸不合适",
+    "content": "模拟商城内部政策：商品型号、颜色或尺寸不合适时，可以提交退换货审核申请。商品状态、库存情况和退回要求由工作人员进一步确认。",
+    "source": "mock://after-sales-policy/v1/return/variant"
+  },
+  {
+    "policy_id": "POLICY-LOGISTICS-001",
+    "category": "logistics",
+    "applicable_order_status":"shipped",
+    "title": "物流长时间未更新",
+    "content": "模拟商城内部政策：物流信息长时间未更新且系统物流状态为 delayed 时，可以创建内部物流催办工单。该工单不代表已经联系承运方，也不保证具体送达时间。",
+    "source": "mock://after-sales-policy/v1/logistics/delayed"
+  }
+]

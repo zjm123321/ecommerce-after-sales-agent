@@ -7,6 +7,7 @@ from app.tools import (
     get_order_tool,
     get_ticket_status_tool,
     create_refund_review_ticket_tool,
+    search_refund_policy_tool,
 )
 
 
@@ -153,3 +154,80 @@ def test_existing_order_can_create_refund_review(monkeypatch):
     assert result["issue_type"] == "refund_request"
     assert result["action"] == "refund_review"
     assert result["status"] == "pending"
+
+def test_refund_policy_tool_uses_real_order_status(
+    monkeypatch,
+):
+    captured = {}
+
+    def fake_search(
+        query,
+        category,
+        order_status,
+        limit,
+    ):
+        captured["query"] = query
+        captured["category"] = category
+        captured["order_status"] = order_status
+        captured["limit"] = limit
+
+        return [
+            {
+                "policy_id": "POLICY-REFUND-002",
+                "category": "refund",
+                "applicable_order_status": "shipped",
+                "title": "已发货订单退款申请",
+                "content": "测试政策",
+                "source": "mock://policy",
+                "score": 0.9,
+            }
+        ]
+
+    monkeypatch.setattr(
+        "app.tools.search_policy_documents",
+        fake_search,
+    )
+
+    result = search_refund_policy_tool.invoke(
+        {
+            "order_id": "ORD-1001",
+            "query": "这个订单可以退款吗？",
+        }
+    )
+
+    assert result["found"] is True
+    assert result["order_status"] == "shipped"
+    assert captured == {
+        "query": "这个订单可以退款吗？",
+        "category": "refund",
+        "order_status": "shipped",
+        "limit": 2,
+    }
+    assert (
+        result["policies"][0]["policy_id"]
+        == "POLICY-REFUND-002"
+    )
+
+
+def test_refund_policy_tool_rejects_missing_order(
+    monkeypatch,
+):
+    def fail_if_called(**kwargs):
+        raise AssertionError(
+            "订单不存在时不应执行政策检索"
+        )
+
+    monkeypatch.setattr(
+        "app.tools.search_policy_documents",
+        fail_if_called,
+    )
+
+    result = search_refund_policy_tool.invoke(
+        {
+            "order_id": "ORD-9999",
+            "query": "帮我退款",
+        }
+    )
+
+    assert result["found"] is False
+    assert result["reason"] == "订单不存在"

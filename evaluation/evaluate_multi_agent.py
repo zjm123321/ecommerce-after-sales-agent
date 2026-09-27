@@ -5,7 +5,6 @@ from pathlib import Path
 
 from app.multi_agent import run_multi_agent
 from evaluation.evaluate_agent import (
-    calls_match,
     collect_tool_calls,
     contains_unnegated_term,
 )
@@ -19,6 +18,32 @@ DEFAULT_CASES_PATH = Path(__file__).with_name(
 def load_cases(path: Path) -> list[dict]:
     with path.open(encoding="utf-8") as file:
         return json.load(file)
+
+
+def calls_match_subset(
+    actual_calls: list[dict],
+    expected_calls: list[dict],
+) -> bool:
+    """校验工具顺序及预期参数，允许实际调用包含额外参数。"""
+    if len(actual_calls) != len(expected_calls):
+        return False
+
+    for actual, expected in zip(
+        actual_calls,
+        expected_calls,
+        strict=True,
+    ):
+        if actual["name"] != expected["name"]:
+            return False
+
+        actual_args = actual.get("args", {})
+        expected_args = expected.get("args", {})
+
+        for key, expected_value in expected_args.items():
+            if actual_args.get(key) != expected_value:
+                return False
+
+    return True
 
 
 def evaluate_case(case: dict) -> dict:
@@ -37,9 +62,9 @@ def evaluate_case(case: dict) -> dict:
         route_correct = (
             result["route"] == case["expected_route"]
         )
-        tool_calls_correct = calls_match(
+        tool_calls_correct = calls_match_subset(
             actual_calls,
-            case,
+            case["expected_calls"],
         )
 
         forbidden_called = sorted(
@@ -55,11 +80,18 @@ def evaluate_case(case: dict) -> dict:
             )
         ]
 
+        missing_required_phrases = [
+            phrase
+            for phrase in case.get("required_phrases", [])
+            if phrase not in final_response
+        ]
+
         passed = (
             route_correct
             and tool_calls_correct
             and not forbidden_called
             and not forbidden_phrases
+            and not missing_required_phrases
         )
 
         return {
@@ -73,6 +105,7 @@ def evaluate_case(case: dict) -> dict:
             "tool_calls_correct": tool_calls_correct,
             "forbidden_called": forbidden_called,
             "forbidden_phrases": forbidden_phrases,
+            "missing_required_phrases": missing_required_phrases,
             "final_response": final_response,
             "latency_seconds": (
                 time.perf_counter() - started_at
@@ -92,6 +125,7 @@ def evaluate_case(case: dict) -> dict:
             "tool_calls_correct": False,
             "forbidden_called": [],
             "forbidden_phrases": [],
+            "missing_required_phrases": [],
             "final_response": "",
             "latency_seconds": (
                 time.perf_counter() - started_at
@@ -122,6 +156,12 @@ def print_result(result: dict) -> None:
         print(
             "违规表述："
             f"{result['forbidden_phrases']}"
+        )
+
+    if result["missing_required_phrases"]:
+        print(
+            "缺少必要依据："
+            f"{result['missing_required_phrases']}"
         )
 
     if result["error"]:
@@ -180,6 +220,10 @@ def main() -> None:
         bool(result["forbidden_phrases"])
         for result in results
     )
+    missing_evidence_responses = sum(
+        bool(result["missing_required_phrases"])
+        for result in results
+    )
     average_latency = sum(
         result["latency_seconds"]
         for result in results
@@ -200,6 +244,7 @@ def main() -> None:
     )
     print(f"越权工具调用案例数：{forbidden_calls}")
     print(f"违规回复案例数：{forbidden_responses}")
+    print(f"缺少政策依据案例数：{missing_evidence_responses}")
     print(f"平均响应耗时：{average_latency:.3f} 秒")
     print(f"总墙钟时间：{wall_time:.3f} 秒")
 

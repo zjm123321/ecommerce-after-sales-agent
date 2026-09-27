@@ -1,0 +1,86 @@
+[
+  {
+    "id": "holdout_refund_unshipped_01",
+    "query": "商家还没出库，我想撤单",
+    "category": "refund",
+    "order_status": "pending",
+    "expected_policy_id": "POLICY-REFUND-001"
+  },
+  {
+    "id": "holdout_refund_unshipped_02",
+    "query": "页面一直显示待发货，现在能退吗",
+    "category": "refund",
+    "order_status": "pending",
+    "expected_policy_id": "POLICY-REFUND-001"
+  },
+  {
+    "id": "holdout_refund_shipped_01",
+    "query": "快递员已经揽件了，我想取消购买",
+    "category": "refund",
+    "order_status": "shipped",
+    "expected_policy_id": "POLICY-REFUND-002"
+  },
+  {
+    "id": "holdout_refund_shipped_02",
+    "query": "货还在路上，可以申请把钱退回来吗",
+    "category": "refund",
+    "order_status": "shipped",
+    "expected_policy_id": "POLICY-REFUND-002"
+  },
+  {
+    "id": "holdout_refund_delivered_01",
+    "query": "我已经确认收货了，还能提交退款吗",
+    "category": "refund",
+    "order_status": "delivered",
+    "expected_policy_id": "POLICY-REFUND-003"
+  },
+  {
+    "id": "holdout_refund_delivered_02",
+    "query": "昨天拿到商品，今天想申请退款",
+    "category": "refund",
+    "order_status": "delivered",
+    "expected_policy_id": "POLICY-REFUND-003"
+  },
+  {
+    "id": "holdout_return_quality_01",
+    "query": "收到的显示器屏幕完全不亮",
+    "category": "return_exchange",
+    "order_status": "delivered",
+    "expected_policy_id": "POLICY-RETURN-001"
+  },
+  {
+    "id": "holdout_return_quality_02",
+    "query": "手机充电接口接触不良，想换货",
+    "category": "return_exchange",
+    "order_status": "delivered",
+    "expected_policy_id": "POLICY-RETURN-001"
+  },
+  {
+    "id": "holdout_return_variant_01",
+    "query": "鞋子买大了，能换小一码吗",
+    "category": "return_exchange",
+    "order_status": "delivered",
+    "expected_policy_id": "POLICY-RETURN-002"
+  },
+  {
+    "id": "holdout_return_variant_02",
+    "query": "我选错了商品规格和版本",
+    "category": "return_exchange",
+    "order_status": "delivered",
+    "expected_policy_id": "POLICY-RETURN-002"
+  },
+  {
+    "id": "holdout_logistics_01",
+    "query": "快递轨迹卡在一个网点好几天",
+    "category": "logistics",
+    "order_status": "shipped",
+    "expected_policy_id": "POLICY-LOGISTICS-001"
+  },
+  {
+    "id": "holdout_logistics_02",
+    "query": "物流一直显示运输中，没有新记录",
+    "category": "logistics",
+    "order_status": "shipped",
+    "expected_policy_id": "POLICY-LOGISTICS-001"
+  }
+]

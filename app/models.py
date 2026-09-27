@@ -63,6 +63,11 @@ class PolicyDocument(Base):
         nullable=False,
         index=True,
     )
+    applicable_order_status: Mapped[str | None] = mapped_column(
+        String(30),
+        nullable=True,
+        index=True,
+    )
     title: Mapped[str] = mapped_column(
         String(200),
         nullable=False,

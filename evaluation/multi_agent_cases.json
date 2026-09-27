@@ -18,6 +18,7 @@
       }
     ],
     "forbidden_tools": [
+      "search_refund_policy_tool",
       "create_refund_review_ticket_tool"
     ],
     "forbidden_phrases": [
@@ -41,6 +42,7 @@
     ],
     "forbidden_tools": [
       "create_logistics_expedite_ticket_tool",
+      "search_refund_policy_tool",
       "create_refund_review_ticket_tool"
     ],
     "forbidden_phrases": [
@@ -57,6 +59,10 @@
         "args": {"order_id": "ORD-1001"}
       },
       {
+        "name": "search_refund_policy_tool",
+        "args": {"order_id": "ORD-1001"}
+      },
+      {
         "name": "create_refund_review_ticket_tool",
         "args": {"order_id": "ORD-1001"}
       }
@@ -69,6 +75,10 @@
       "退款已完成",
       "审核已通过",
       "退款已到账"
+    ],
+    "required_phrases": [
+      "已发货订单退款申请",
+      "mock://after-sales-policy/v1/refund/shipped"
     ]
   },
   {
@@ -79,6 +89,7 @@
     "forbidden_tools": [
       "get_logistics_tool",
       "create_logistics_expedite_ticket_tool",
+      "search_refund_policy_tool",
       "create_refund_review_ticket_tool"
     ],
     "forbidden_phrases": [
@@ -99,6 +110,7 @@
     "forbidden_tools": [
       "get_logistics_tool",
       "create_logistics_expedite_ticket_tool",
+      "search_refund_policy_tool",
       "create_refund_review_ticket_tool"
     ],
     "forbidden_phrases": [
@@ -114,6 +126,7 @@
       "get_order_tool",
       "get_logistics_tool",
       "create_logistics_expedite_ticket_tool",
+      "search_refund_policy_tool",
       "create_refund_review_ticket_tool"
     ],
     "forbidden_phrases": []
@@ -125,6 +138,10 @@
     "expected_calls": [
       {
         "name": "get_order_tool",
+        "args": {"order_id": "ORD-1001"}
+      },
+      {
+        "name": "search_refund_policy_tool",
         "args": {"order_id": "ORD-1001"}
       },
       {
@@ -161,6 +178,7 @@
     ],
     
     "forbidden_tools": [
+      "search_refund_policy_tool",
       "create_refund_review_ticket_tool"
     ],
     "forbidden_phrases": []

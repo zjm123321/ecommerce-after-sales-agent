@@ -1,0 +1,86 @@
+[
+  {
+    "id": "refund_unshipped_01",
+    "query": "订单还没有发货，我不想要了",
+    "category": "refund",
+    "order_status": "pending",
+    "expected_policy_id": "POLICY-REFUND-001"
+  },
+  {
+    "id": "refund_unshipped_02",
+    "query": "商品还没寄出来，可以取消并退款吗",
+    "category": "refund",
+    "order_status": "pending",
+    "expected_policy_id": "POLICY-REFUND-001"
+  },
+  {
+    "id": "refund_shipped_01",
+    "query": "订单已经发货了，我现在还能申请退款吗",
+    "category": "refund",
+    "order_status": "shipped",
+    "expected_policy_id": "POLICY-REFUND-002"
+  },
+  {
+    "id": "refund_shipped_02",
+    "query": "包裹正在运输途中，但是我不想要了",
+    "category": "refund",
+    "order_status": "shipped",
+    "expected_policy_id": "POLICY-REFUND-002"
+  },
+  {
+    "id": "refund_delivered_01",
+    "query": "商品已经签收了，但是我想退款",
+    "category": "refund",
+    "order_status": "delivered",
+    "expected_policy_id": "POLICY-REFUND-003"
+  },
+  {
+    "id": "refund_delivered_02",
+    "query": "东西已经收到了，现在申请退款怎么处理",
+    "category": "refund",
+    "order_status": "delivered",
+    "expected_policy_id": "POLICY-REFUND-003"
+  },
+  {
+    "id": "return_quality_01",
+    "query": "键盘按键坏了，想换一个新的",
+    "category": "return_exchange",
+    "order_status": "delivered",
+    "expected_policy_id": "POLICY-RETURN-001"
+  },
+  {
+    "id": "return_quality_02",
+    "query": "耳机没有声音，应该怎么退换",
+    "category": "return_exchange",
+    "order_status": "delivered",
+    "expected_policy_id": "POLICY-RETURN-001"
+  },
+  {
+    "id": "return_variant_01",
+    "query": "衣服尺码太小了，想换大一码",
+    "category": "return_exchange",
+    "order_status": "delivered",
+    "expected_policy_id": "POLICY-RETURN-002"
+  },
+  {
+    "id": "return_variant_02",
+    "query": "收到的颜色和型号不合适，可以换货吗",
+    "category": "return_exchange",
+    "order_status": "delivered",
+    "expected_policy_id": "POLICY-RETURN-002"
+  },
+  {
+    "id": "logistics_delay_01",
+    "query": "物流好几天没有更新了",
+    "category": "logistics",
+    "order_status": "shipped",
+    "expected_policy_id": "POLICY-LOGISTICS-001"
+  },
+  {
+    "id": "logistics_delay_02",
+    "query": "包裹一直停在分拨中心没有动静",
+    "category": "logistics",
+    "order_status": "shipped",
+    "expected_policy_id": "POLICY-LOGISTICS-001"
+  }
+]
