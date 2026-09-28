@@ -3,7 +3,7 @@ from langchain_openai import ChatOpenAI
 from langgraph.graph import END, START, MessagesState, StateGraph
 from langgraph.prebuilt import ToolNode, tools_condition
 
-from app.local_config import DEEPSEEK_API_KEY
+from app.config import SETTINGS
 from app.prompts import BASELINE_PROMPT, OPTIMIZED_PROMPT
 from app.tools import (
     create_logistics_expedite_ticket_tool,
@@ -20,9 +20,9 @@ TOOLS = [
 
 
 MODEL = ChatOpenAI(
-    model="deepseek-chat",
-    api_key=DEEPSEEK_API_KEY,
-    base_url="https://api.deepseek.com",
+    model=SETTINGS.deepseek_model,
+    api_key=SETTINGS.deepseek_api_key,
+    base_url=SETTINGS.deepseek_base_url,
     temperature=0,
     timeout=20,
     max_retries=2,

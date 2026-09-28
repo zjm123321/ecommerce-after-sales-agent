@@ -8,6 +8,9 @@ class Settings(BaseSettings):
     postgres_user: str
     postgres_password: str
     postgres_port: int = 5432
+    deepseek_api_key: str
+    deepseek_base_url: str = "https://api.deepseek.com"
+    deepseek_model: str = "deepseek-chat"
     embedding_model: str = "BAAI/bge-small-zh-v1.5"
     embedding_dimension: int = 512
     embedding_cache_dir: str | None = None

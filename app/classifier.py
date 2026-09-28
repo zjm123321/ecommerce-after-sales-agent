@@ -3,7 +3,7 @@ from typing import Literal
 from openai import OpenAI
 from pydantic import BaseModel
 
-from app.local_config import DEEPSEEK_API_KEY
+from app.config import SETTINGS
 
 
 # 限制模型只能返回以下四种问题类型。
@@ -24,14 +24,14 @@ def classify_message(message: str) -> IssueType:
     """使用 DeepSeek 判断售后问题类型。"""
 
     client = OpenAI(
-        api_key=DEEPSEEK_API_KEY,
-        base_url="https://api.deepseek.com",
+        api_key=SETTINGS.deepseek_api_key,
+        base_url=SETTINGS.deepseek_base_url,
         timeout=10.0,
         max_retries=2,
     )   
 
     response = client.chat.completions.create(
-        model="deepseek-chat",
+        model=SETTINGS.deepseek_model,
         messages=[
             {
                 "role": "system",
