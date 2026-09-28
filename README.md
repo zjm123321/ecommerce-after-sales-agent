@@ -12,6 +12,8 @@
 - PostgreSQL 工单持久化
 - 待处理工单幂等控制
 - PostgreSQL Checkpointer 多轮会话记忆
+- 基于 `user_id` 和 pgvector 的跨会话长期记忆
+- 只从可信工具结果中提取记忆，支持幂等更新、过期和删除
 - pgvector 售后政策 RAG
 - 订单状态元数据过滤与向量检索
 - FastAPI HTTP 接口
@@ -38,7 +40,7 @@ FastAPI / MCP
 订单、物流、政策和工单工具
           │
           ├── PostgreSQL：工单与会话状态
-          └── pgvector：售后政策向量检索
+          └── pgvector：售后政策与用户长期记忆检索
 ```
 
 ## 业务流程
@@ -93,6 +95,7 @@ app/
 ├── api.py                       # FastAPI 接口
 ├── multi_agent.py               # 多智能体路由
 ├── persistent_multi_agent.py    # PostgreSQL 会话持久化入口
+├── long_term_memory.py           # 跨会话长期记忆存储与检索
 ├── agent.py                     # 物流 Agent
 ├── refund_agent.py              # 退款 Agent
 ├── return_exchange_agent.py     # 退换货 Agent
@@ -164,11 +167,14 @@ python -m uvicorn app.api:app --reload
 ```json
 {
   "message": "订单 ORD-1001 我不想要了，帮我退款",
-  "thread_id": "demo-user-001"
+  "thread_id": "demo-thread-001",
+  "user_id": "demo-user-001"
 }
 ```
 
-相同的 `thread_id` 会复用 PostgreSQL 中保存的会话状态。
+- 相同 `thread_id` 会复用 PostgreSQL Checkpoint 中的当前会话状态。
+- 相同 `user_id` 可以跨不同 `thread_id` 检索已验证的历史工单记忆。
+- 长期记忆只从可信工具结果中提取，不直接保存模型推测。
 
 ## MCP 服务
 
@@ -212,6 +218,7 @@ python -m pytest -q
 python -m pytest tests/integration/check_ticket_service.py -q
 python -m pytest tests/integration/check_memory_agent.py -q
 python -m pytest tests/integration/check_persistent_memory_agent.py -q
+python -m pytest tests/integration/check_long_term_memory.py -q
 python -m pytest tests/integration/check_deepseek.py -q
 ```
 
