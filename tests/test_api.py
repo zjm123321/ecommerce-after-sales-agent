@@ -43,9 +43,15 @@ def test_health_check():
 
 
 def test_chat_returns_agent_result(monkeypatch):
+    events = []
+
     monkeypatch.setattr(
         "app.api.run_persistent_multi_agent",
         lambda message, thread_id: build_fake_result(),
+    )
+    monkeypatch.setattr(
+        "app.api.record_agent_run",
+        lambda **kwargs: events.append(kwargs),
     )
 
     response = client.post(
@@ -54,12 +60,16 @@ def test_chat_returns_agent_result(monkeypatch):
             "message": "订单 ORD-1001 帮我退款",
             "thread_id": "api-test-001",
         },
+        headers={
+            "X-Request-ID": "request-test-001",
+        },
     )
 
     assert response.status_code == 200
 
     body = response.json()
 
+    assert body["request_id"] == "request-test-001"
     assert body["thread_id"] == "api-test-001"
     assert body["issue_type"] == "refund_request"
     assert body["route"] == "refund"
@@ -70,6 +80,18 @@ def test_chat_returns_agent_result(monkeypatch):
             "args": {"order_id": "ORD-1001"},
         }
     ]
+    assert (
+        response.headers["X-Request-ID"]
+        == "request-test-001"
+    )
+
+    assert len(events) == 1
+    assert events[0]["status"] == "success"
+    assert events[0]["route"] == "refund"
+    assert events[0]["tool_names"] == [
+        "get_order_tool"
+    ]
+    assert events[0]["duration_ms"] >= 0
 
 
 def test_chat_generates_thread_id(monkeypatch):
@@ -92,6 +114,12 @@ def test_chat_generates_thread_id(monkeypatch):
     assert response.status_code == 200
     assert response.json()["thread_id"]
     assert response.json()["thread_id"] == captured["thread_id"]
+    assert response.json()["request_id"]
+    assert response.headers["X-Request-ID"]
+    assert (
+        response.json()["request_id"]
+        == response.headers["X-Request-ID"]
+    )
 
 
 def test_chat_rejects_empty_message():
@@ -104,12 +132,18 @@ def test_chat_rejects_empty_message():
 
 
 def test_chat_hides_internal_error(monkeypatch):
+    events = []
+
     def raise_error(message, thread_id):
         raise RuntimeError("模拟内部异常")
 
     monkeypatch.setattr(
         "app.api.run_persistent_multi_agent",
         raise_error,
+    )
+    monkeypatch.setattr(
+        "app.api.record_agent_run",
+        lambda **kwargs: events.append(kwargs),
     )
 
     response = client.post(
@@ -118,9 +152,21 @@ def test_chat_hides_internal_error(monkeypatch):
             "message": "测试请求",
             "thread_id": "api-test-error",
         },
+        headers={
+            "X-Request-ID": "request-test-error",
+        },
     )
 
     assert response.status_code == 500
     assert response.json() == {
         "detail": "Agent 处理请求失败"
     }
+    assert (
+        response.headers["X-Request-ID"]
+        == "request-test-error"
+    )
+
+    assert len(events) == 1
+    assert events[0]["status"] == "error"
+    assert events[0]["error_type"] == "RuntimeError"
+    assert events[0]["duration_ms"] >= 0

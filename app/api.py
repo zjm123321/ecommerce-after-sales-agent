@@ -1,6 +1,6 @@
 from typing import Any
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, Response
 from langchain_core.messages import AIMessage
 from pydantic import BaseModel, Field
 
@@ -8,6 +8,9 @@ from uuid import uuid4
 
 from app.persistent_multi_agent import run_persistent_multi_agent
 
+from time import perf_counter
+
+from app.observability import record_agent_run
 
 app = FastAPI(
     title="电商售后 Agent API",
@@ -54,6 +57,7 @@ class ToolCallRecord(BaseModel):
 
 
 class ChatResponse(BaseModel):
+    request_id: str
     thread_id: str
     issue_type: str
     route: str
@@ -86,25 +90,77 @@ def health_check() -> dict[str, str]:
 
 
 @app.post("/api/v1/chat", response_model=ChatResponse)
-def chat(request: ChatRequest) -> ChatResponse:
-    thread_id = request.thread_id or str(uuid4())
+def chat(
+    payload: ChatRequest,
+    http_request: Request,
+    http_response: Response,
+) -> ChatResponse:
+    incoming_request_id = http_request.headers.get(
+        "X-Request-ID"
+    )
+    request_id = (
+        incoming_request_id
+        if incoming_request_id
+        and len(incoming_request_id) <= 100
+        else str(uuid4())
+    )
+    thread_id = payload.thread_id or str(uuid4())
+    started_at = perf_counter()
 
     try:
         result = run_persistent_multi_agent(
-            message=request.message,
+            message=payload.message,
             thread_id=thread_id,
         )
         turn_messages = result["turn_messages"]
+        tool_calls = collect_tool_calls(turn_messages)
+
+        duration_ms = (
+            perf_counter() - started_at
+        ) * 1000
+
+        record_agent_run(
+            request_id=request_id,
+            thread_id=thread_id,
+            duration_ms=duration_ms,
+            status="success",
+            route=str(result["route"]),
+            issue_type=str(result["issue_type"]),
+            tool_names=[
+                tool_call.name
+                for tool_call in tool_calls
+            ],
+        )
+
+        http_response.headers[
+            "X-Request-ID"
+        ] = request_id
 
         return ChatResponse(
+            request_id=request_id,
             thread_id=thread_id,
             issue_type=str(result["issue_type"]),
             route=str(result["route"]),
             response=str(turn_messages[-1].content),
-            tool_calls=collect_tool_calls(turn_messages),
+            tool_calls=tool_calls,
         )
     except Exception as exc:
+        duration_ms = (
+            perf_counter() - started_at
+        ) * 1000
+
+        record_agent_run(
+            request_id=request_id,
+            thread_id=thread_id,
+            duration_ms=duration_ms,
+            status="error",
+            error_type=type(exc).__name__,
+        )
+
         raise HTTPException(
             status_code=500,
             detail="Agent 处理请求失败",
+            headers={
+                "X-Request-ID": request_id,
+            },
         ) from exc
