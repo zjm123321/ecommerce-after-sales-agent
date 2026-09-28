@@ -50,6 +50,14 @@ class ChatRequest(BaseModel):
         max_length=100,
         description="会话编号；不提供时自动生成",
     )
+    user_id: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=100,
+        description=(
+            "用户编号；用于跨不同 thread_id 检索长期记忆"
+        ),
+    )
 
 class ToolCallRecord(BaseModel):
     name: str
@@ -59,10 +67,12 @@ class ToolCallRecord(BaseModel):
 class ChatResponse(BaseModel):
     request_id: str
     thread_id: str
+    user_id: str
     issue_type: str
     route: str
     response: str
     tool_calls: list[ToolCallRecord]
+
 
 
 def collect_tool_calls(messages: list[Any]) -> list[ToolCallRecord]:
@@ -105,12 +115,14 @@ def chat(
         else str(uuid4())
     )
     thread_id = payload.thread_id or str(uuid4())
+    user_id = payload.user_id or thread_id
     started_at = perf_counter()
 
     try:
         result = run_persistent_multi_agent(
             message=payload.message,
             thread_id=thread_id,
+            user_id=user_id,
         )
         turn_messages = result["turn_messages"]
         tool_calls = collect_tool_calls(turn_messages)
@@ -139,6 +151,7 @@ def chat(
         return ChatResponse(
             request_id=request_id,
             thread_id=thread_id,
+            user_id=user_id,
             issue_type=str(result["issue_type"]),
             route=str(result["route"]),
             response=str(turn_messages[-1].content),

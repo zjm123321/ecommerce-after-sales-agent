@@ -47,7 +47,7 @@ def test_chat_returns_agent_result(monkeypatch):
 
     monkeypatch.setattr(
         "app.api.run_persistent_multi_agent",
-        lambda message, thread_id: build_fake_result(),
+        lambda message, thread_id, user_id: build_fake_result(),
     )
     monkeypatch.setattr(
         "app.api.record_agent_run",
@@ -97,8 +97,9 @@ def test_chat_returns_agent_result(monkeypatch):
 def test_chat_generates_thread_id(monkeypatch):
     captured = {}
 
-    def fake_agent(message, thread_id):
+    def fake_agent(message, thread_id, user_id):
         captured["thread_id"] = thread_id
+        captured["user_id"] = user_id
         return build_fake_result()
 
     monkeypatch.setattr(
@@ -134,7 +135,7 @@ def test_chat_rejects_empty_message():
 def test_chat_hides_internal_error(monkeypatch):
     events = []
 
-    def raise_error(message, thread_id):
+    def raise_error(message, thread_id, user_id):
         raise RuntimeError("模拟内部异常")
 
     monkeypatch.setattr(
@@ -170,3 +171,34 @@ def test_chat_hides_internal_error(monkeypatch):
     assert events[0]["status"] == "error"
     assert events[0]["error_type"] == "RuntimeError"
     assert events[0]["duration_ms"] >= 0
+
+def test_chat_passes_user_id_to_agent(monkeypatch):
+    captured = {}
+
+    def fake_agent(message, thread_id, user_id):
+        captured["message"] = message
+        captured["thread_id"] = thread_id
+        captured["user_id"] = user_id
+        return build_fake_result()
+
+    monkeypatch.setattr(
+        "app.api.run_persistent_multi_agent",
+        fake_agent,
+    )
+
+    response = client.post(
+        "/api/v1/chat",
+        json={
+            "message": "查询之前的工单",
+            "thread_id": "api-thread-001",
+            "user_id": "api-user-001",
+        },
+    )
+
+    assert response.status_code == 200
+    assert captured == {
+        "message": "查询之前的工单",
+        "thread_id": "api-thread-001",
+        "user_id": "api-user-001",
+    }
+    assert response.json()["user_id"] == "api-user-001"
